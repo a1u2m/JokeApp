@@ -11,14 +11,14 @@ class MainViewModel(private val model: Model<Joke, Error>) {
     fun init(textCallback: TextCallback) {
         this.textCallback = textCallback
         model.init(object : ResultCallback<Joke, Error> {
-            override fun provideSuccess(data: Joke) {
+            override fun provideSuccess(data: Joke) =
                 textCallback.provideText(data.toUI())
-            }
 
-            override fun provideError(error: Error) {
+
+            override fun provideError(error: Error) =
                 textCallback.provideText(error.message())
-            }
-        } )
+
+        })
     }
 
     fun clear() {
