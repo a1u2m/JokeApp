@@ -19,7 +19,11 @@ class BaseModel(
         jokeService.joke().enqueue(object : Callback<JokeCloud> {
             override fun onResponse(call: Call<JokeCloud>, response: Response<JokeCloud>) {
                 if (response.isSuccessful) {
-                    callback?.provideSuccess(response.body()!!.toJoke())
+                    val body = response.body()
+                    if (body == null)
+                        callback?.provideError(serviceError)
+                    else
+                        callback?.provideSuccess(body.toJoke())
                 } else {
                     callback?.provideError(serviceError)
                 }

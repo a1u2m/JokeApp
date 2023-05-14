@@ -12,7 +12,8 @@ class JokeApp : Application() {
         super.onCreate()
         ManageResources.Base(this)
         val retrofit =
-            Retrofit.Builder().baseUrl("https://official-joke-api.appspot.com/").addConverterFactory(GsonConverterFactory.create())
+            Retrofit.Builder().baseUrl("https://official-joke-api.appspot.com/")
+                .addConverterFactory(GsonConverterFactory.create())
                 .build()
         viewModel = MainViewModel(
             BaseModel(
