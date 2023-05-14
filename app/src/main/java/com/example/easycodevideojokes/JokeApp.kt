@@ -1,6 +1,7 @@
 package com.example.easycodevideojokes
 
 import android.app.Application
+import com.google.gson.Gson
 
 class JokeApp : Application() {
 
@@ -9,6 +10,6 @@ class JokeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         ManageResources.Base(this)
-        viewModel = MainViewModel(FakeModel(ManageResources.Base(this)))
+        viewModel = MainViewModel(BaseModel(JokeService.Base(Gson()), ManageResources.Base(this)))
     }
 }
