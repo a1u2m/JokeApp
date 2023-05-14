@@ -1,6 +1,8 @@
-package com.example.easycodevideojokes
+package com.example.easycodevideojokes.data
 
 import androidx.annotation.StringRes
+import com.example.easycodevideojokes.presentation.ManageResources
+import com.example.easycodevideojokes.R
 
 interface Error {
 
@@ -18,4 +20,6 @@ interface Error {
 
     class ServiceUnavailable(private val manageResources: ManageResources) :
         Abstract(manageResources, R.string.service_unavailable_message)
+
+    class NoFavoriteJoke(manageResources: ManageResources): Abstract(manageResources, R.string.no_faviorite_joke)
 }

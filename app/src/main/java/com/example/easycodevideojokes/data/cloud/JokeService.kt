@@ -1,4 +1,4 @@
-package com.example.easycodevideojokes
+package com.example.easycodevideojokes.data.cloud
 
 import retrofit2.Call
 import retrofit2.http.GET

@@ -3,4 +3,6 @@
     <string name="get_joke">Get joke</string>
     <string name="no_internet_message">No internet connection</string>
     <string name="service_unavailable_message">Service is unavailable</string>
+    <string name="show_favorite_joke">show favorite joke</string>
+    <string name="no_faviorite_joke">No favorite jokes. To add one just click on heart\n</string>
 </resources>

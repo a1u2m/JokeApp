@@ -1,4 +1,4 @@
-package com.example.easycodevideojokes
+package com.example.easycodevideojokes.presentation
 
 import android.content.Context
 import androidx.annotation.StringRes

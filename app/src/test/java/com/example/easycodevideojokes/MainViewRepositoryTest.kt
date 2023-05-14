@@ -1,16 +1,22 @@
 package com.example.easycodevideojokes
 
+import com.example.easycodevideojokes.data.Error
+import com.example.easycodevideojokes.data.Repository
+import com.example.easycodevideojokes.data.ResultCallback
+import com.example.easycodevideojokes.presentation.JokeUi
+import com.example.easycodevideojokes.presentation.MainViewModel
+import com.example.easycodevideojokes.presentation.JokeUiCallback
 import org.junit.Assert.*
 import org.junit.Test
 
-class MainViewModelTest {
+class MainViewRepositoryTest {
 
     @Test
     fun test_success() {
-        val model = FakeModel()
+        val model = com.example.easycodevideojokes.data.FakeRepository()
         model.returnSucces = true
         val viewModel = MainViewModel(model)
-        viewModel.init(object : TextCallback {
+        viewModel.init(object : JokeUiCallback {
             override fun provideText(text: String) {
                 assertEquals("fake joke 1" + "\n" + "punchline", text)
             }
@@ -20,10 +26,10 @@ class MainViewModelTest {
 
     @Test
     fun test_error() {
-        val model = FakeModel()
+        val model = com.example.easycodevideojokes.data.FakeRepository()
         model.returnSucces = false
         val viewModel = MainViewModel(model)
-        viewModel.init(object : TextCallback {
+        viewModel.init(object : JokeUiCallback {
             override fun provideText(text: String) {
                 assertEquals("fake error message", text)
             }
@@ -32,14 +38,14 @@ class MainViewModelTest {
     }
 }
 
-private class FakeModel : Model<Joke, Error> {
+private class FakeRepository : Repository<JokeUi, Error> {
 
     var returnSucces = true
-    private var callback: ResultCallback<Joke, Error>? = null
+    private var callback: ResultCallback<JokeUi, Error>? = null
 
     override fun fetch() {
         if (returnSucces)
-            callback?.provideSuccess(Joke("fake joke 1", "punchline"))
+            callback?.provideSuccess(JokeUi("fake joke 1", "punchline"))
         else
             callback?.provideError(FakeError())
     }
@@ -48,7 +54,7 @@ private class FakeModel : Model<Joke, Error> {
         callback = null
     }
 
-    override fun init(resultCallback: ResultCallback<Joke, Error>) {
+    override fun init(resultCallback: ResultCallback<JokeUi, Error>) {
         callback = resultCallback
     }
 }

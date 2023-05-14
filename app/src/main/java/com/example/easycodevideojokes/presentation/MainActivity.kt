@@ -1,8 +1,9 @@
-package com.example.easycodevideojokes
+package com.example.easycodevideojokes.presentation
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.example.easycodevideojokes.JokeApp
 import com.example.easycodevideojokes.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -16,20 +17,31 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = (application as JokeApp).viewModel
 
+        binding.showFavoriteCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.chooseFavorite(isChecked)
+        }
+        binding.favoriteButton.setOnClickListener {
+            viewModel.changeJokeStatus()
+        }
+
         binding.actionButton.setOnClickListener {
             binding.actionButton.isEnabled = false
             binding.progressBar.visibility = View.VISIBLE
             viewModel.getJoke()
         }
 
-        val textCallback = object : TextCallback {
+        val jokeUiCallback = object : JokeUiCallback {
             override fun provideText(text: String) = runOnUiThread {
                 binding.actionButton.isEnabled = true
                 binding.progressBar.visibility = View.INVISIBLE
                 binding.textView.text = text
             }
+
+            override fun provideIconResId(iconResId: Int) = runOnUiThread {
+                binding.favoriteButton.setImageResource(iconResId)
+            }
         }
-        viewModel.init(textCallback)
+        viewModel.init(jokeUiCallback)
     }
 
     override fun onDestroy() {
