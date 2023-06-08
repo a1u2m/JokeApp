@@ -4,10 +4,13 @@ import android.app.Application
 import com.example.easycodevideojokes.data.BaseRepository
 import com.example.easycodevideojokes.data.FakeRepository
 import com.example.easycodevideojokes.data.cache.CacheDataSource
+import com.example.easycodevideojokes.data.cache.ProvideRealm
 import com.example.easycodevideojokes.data.cloud.CloudDataSource
 import com.example.easycodevideojokes.data.cloud.JokeService
 import com.example.easycodevideojokes.presentation.MainViewModel
 import com.example.easycodevideojokes.presentation.ManageResources
+import io.realm.Realm
+import leakcanary.LeakCanary
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -17,6 +20,7 @@ class JokeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Realm.init(this)
         ManageResources.Base(this)
         val retrofit =
             Retrofit.Builder().baseUrl("https://official-joke-api.appspot.com/")
@@ -29,7 +33,9 @@ class JokeApp : Application() {
                     retrofit.create(JokeService::class.java),
                     ManageResources.Base(this)
                 ),
-                CacheDataSource.Fake(manageResources)
+                CacheDataSource.Base(object : ProvideRealm {
+                    override fun provideRealm(): Realm = Realm.getDefaultInstance()
+                }, manageResources)
             )
 //            BaseModel(
 //                retrofit.create(JokeService::class.java),

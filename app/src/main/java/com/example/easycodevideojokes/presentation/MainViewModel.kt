@@ -35,7 +35,10 @@ repository.chooseFavorites(favorites)
     }
 
     fun changeJokeStatus() {
-        repository.changeJokeStatus(resultCallback)
+        Thread {
+            repository.changeJokeStatus(resultCallback)
+        }.start()
+
     }
 }
 
