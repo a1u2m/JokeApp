@@ -1,54 +1,49 @@
 package com.example.easycodevideojokes.data.cache
 
 import com.example.easycodevideojokes.data.Error
-import com.example.easycodevideojokes.data.cloud.JokeCloud
+import com.example.easycodevideojokes.data.Joke
+import com.example.easycodevideojokes.data.ToBaseUi
+import com.example.easycodevideojokes.data.ToCache
+import com.example.easycodevideojokes.data.ToFavoriteUi
 import com.example.easycodevideojokes.presentation.JokeUi
 import com.example.easycodevideojokes.presentation.ManageResources
 import io.realm.Realm
 
-interface CacheDataSource {
+interface CacheDataSource: DataSource {
 
-    fun addOrRemove(id: Int, joke: JokeCloud): JokeUi
-    fun fetch(jokeCacheCallback: JokeCacheCallback)
+    fun addOrRemove(id: Int, joke: Joke): JokeUi
 
     class Base(private val realm: ProvideRealm, manageResources: ManageResources) :
         CacheDataSource {
 
         private val error by lazy { Error.NoFavoriteJoke(manageResources) }
-        override fun addOrRemove(id: Int, joke: JokeCloud): JokeUi {
+        override fun addOrRemove(id: Int, joke: Joke): JokeUi {
             realm.provideRealm().let {
                 val jokeCached = it.where(JokeCache::class.java).equalTo("id", id).findFirst()
                 if (jokeCached == null) {
                     it.executeTransaction { realm ->
-                        val jokeCache = joke.toCache()
-                        realm.insert(jokeCache)
+                        val jokeDomainCache = joke.map(ToCache())
+                        realm.insert(jokeDomainCache)
                     }
-                    return joke.toFavoriteUi()
+                    return joke.map(ToFavoriteUi())
                 } else {
                     it.executeTransaction {
                         jokeCached.deleteFromRealm()
 
                     }
-                    return joke.toUi()
+                    return joke.map(ToBaseUi())
                 }
             }
         }
 
-        override fun fetch(jokeCacheCallback: JokeCacheCallback) {
+        override fun fetch(jokeCallback: JokeCallback) {
             realm.provideRealm().let {
                 val jokes = it.where(JokeCache::class.java).findAll()
                 if (jokes.isEmpty()) {
-                    jokeCacheCallback.provideError(error)
+                    jokeCallback.provideError(error)
                 } else {
                     val jokeCached = jokes.random()
-                    jokeCacheCallback.provideJoke(
-                        JokeCloud(
-                            jokeCached.type,
-                            jokeCached.text,
-                            jokeCached.punchline,
-                            jokeCached.id
-                        )
-                    )
+                    jokeCallback.provideJoke(it.copyFromRealm(jokeCached))
                 }
             }
         }
@@ -57,28 +52,28 @@ interface CacheDataSource {
     class Fake(private val manageResources: ManageResources) : CacheDataSource {
 
         private val error by lazy { Error.NoFavoriteJoke(manageResources) }
-        private var map = mutableMapOf<Int, JokeCloud>()
-        override fun addOrRemove(id: Int, joke: JokeCloud): JokeUi {
+        private var map = mutableMapOf<Int, Joke>()
+        override fun addOrRemove(id: Int, joke: Joke): JokeUi {
             return if (map.containsKey(id)) {
                 map.remove(id)
-                joke.toUi()
+                joke.map(ToBaseUi())
             } else {
                 map[id] = joke
-                joke.toFavoriteUi()
+                joke.map(ToFavoriteUi())
             }
         }
 
         private var count = 0
 
-        override fun fetch(jokeCacheCallback: JokeCacheCallback) {
+        override fun fetch(jokeCallback: JokeCallback) {
 
             if (map.isEmpty())
-                jokeCacheCallback.provideError(error)
+                jokeCallback.provideError(error)
             else {
                 if (++count == map.size)
                     count = 0
 
-                jokeCacheCallback.provideJoke(
+                jokeCallback.provideJoke(
                     map.toList()[count].second
                 )
             }
@@ -86,8 +81,12 @@ interface CacheDataSource {
     }
 }
 
-interface JokeCacheCallback : ProvideError {
-    fun provideJoke(joke: JokeCloud)
+interface DataSource {
+    fun fetch(jokeCallback: JokeCallback)
+}
+
+interface JokeCallback : ProvideError {
+    fun provideJoke(joke: Joke)
 
 }
 
