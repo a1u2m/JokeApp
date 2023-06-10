@@ -68,5 +68,4 @@ class ToDomain : Joke.Mapper<JokeDomain> {
     override fun map(type: String, mainText: String, punchline: String, id: Int): JokeDomain {
         return JokeDomain(type, mainText, punchline, id)
     }
-
 }
