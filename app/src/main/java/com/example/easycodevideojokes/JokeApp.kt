@@ -1,8 +1,8 @@
 package com.example.easycodevideojokes
 
+//import com.example.easycodevideojokes.data.FakeRepository
 import android.app.Application
 import com.example.easycodevideojokes.data.BaseRepository
-import com.example.easycodevideojokes.data.FakeRepository
 import com.example.easycodevideojokes.data.cache.CacheDataSource
 import com.example.easycodevideojokes.data.cache.ProvideRealm
 import com.example.easycodevideojokes.data.cloud.CloudDataSource
@@ -10,7 +10,6 @@ import com.example.easycodevideojokes.data.cloud.JokeService
 import com.example.easycodevideojokes.presentation.MainViewModel
 import com.example.easycodevideojokes.presentation.ManageResources
 import io.realm.Realm
-import leakcanary.LeakCanary
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
