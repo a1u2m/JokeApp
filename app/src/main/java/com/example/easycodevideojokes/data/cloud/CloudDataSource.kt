@@ -18,7 +18,7 @@ interface CloudDataSource : DataSource {
         private val noConnection by lazy { Error.NoConnection(manageResources) }
         private val serviceError by lazy { Error.ServiceUnavailable(manageResources) }
 
-        override fun fetch(): JokeResult =
+        override suspend fun fetch(): JokeResult =
              try {
                 val response = jokeService.joke().execute()
                 JokeResult.Success(response.body()!!, false)
