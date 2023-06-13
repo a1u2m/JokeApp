@@ -9,7 +9,6 @@ import com.example.easycodevideojokes.data.Repository
 import com.example.easycodevideojokes.data.ToBaseUi
 import com.example.easycodevideojokes.data.ToFavoriteUi
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -18,16 +17,20 @@ class MainViewModel(
     private val repository: Repository<JokeUi, Error>,
     private val toFavorite: Joke.Mapper<JokeUi> = ToFavoriteUi(),
     private val toBaseUi: Joke.Mapper<JokeUi> = ToBaseUi(),
-    private val handleUi: HandleUi = HandleUi.Base(DispatcherList.Base())
-) : ViewModel() {
+    dispatcherList: DispatcherList = DispatcherList.Base()
+) : BaseViewModel(dispatcherList = dispatcherList) {
     private var jokeUiCallback: JokeUiCallback = JokeUiCallback.Empty()
+    private val blockUi: suspend (JokeUi) -> Unit = {
+        it.show(jokeUiCallback)
+    }
 
-    fun getJoke() =
-        handleUi.handle(viewModelScope, jokeUiCallback) {
+    fun getJoke() {
+        handle({
             val result = repository.fetch()
             if (result.isSuccessful()) result.map(if (result.toFavorite()) toFavorite else toBaseUi)
             else JokeUi.Failed(result.errorMessage())
-        }
+        }, blockUi)
+    }
 
 
     override fun onCleared() {
@@ -43,54 +46,46 @@ class MainViewModel(
         repository.chooseFavorites(favorites)
     }
 
-    fun changeJokeStatus() =
-        handleUi.handle(viewModelScope, jokeUiCallback) {
+    fun changeJokeStatus() {
+        handle({
             repository.changeJokeStatus()
+        }, blockUi)
+    }
+
+    interface JokeUiCallback {
+        fun provideText(text: String)
+
+        fun provideIconResId(@DrawableRes iconResId: Int)
+
+        class Empty : JokeUiCallback {
+            override fun provideText(text: String) = Unit
+            override fun provideIconResId(iconResId: Int) = Unit
         }
-}
+    }
 
-interface JokeUiCallback {
-    fun provideText(text: String)
+    interface DispatcherList {
+        fun io(): CoroutineDispatcher
+        fun ui(): CoroutineDispatcher
 
-    fun provideIconResId(@DrawableRes iconResId: Int)
+        class Base : DispatcherList {
+            override fun io() = Dispatchers.IO
 
-    class Empty : JokeUiCallback {
-        override fun provideText(text: String) = Unit
-        override fun provideIconResId(iconResId: Int) = Unit
+            override fun ui() = Dispatchers.Main
+
+        }
     }
 }
 
-interface DispatcherList {
-    fun io(): CoroutineDispatcher
-    fun ui(): CoroutineDispatcher
-
-    class Base : DispatcherList {
-        override fun io(): CoroutineDispatcher = Dispatchers.IO
-
-        override fun ui(): CoroutineDispatcher = Dispatchers.Main
-
-    }
-}
-
-interface HandleUi {
-    fun handle(
-        coroutineScope: CoroutineScope,
-        jokeUiCallback: JokeUiCallback, block: suspend () -> JokeUi
-    )
-
-    class Base(private val dispatcherList: DispatcherList) : HandleUi {
-        override fun handle(
-            coroutineScope: CoroutineScope,
-            jokeUiCallback: JokeUiCallback,
-            block: suspend () -> JokeUi
-        ) {
-            coroutineScope.launch(dispatcherList.io()) {
-                val jokeUi = block.invoke()
-                withContext(dispatcherList.ui()) {
-                    jokeUi.show(jokeUiCallback)
-                }
+abstract class BaseViewModel(private val dispatcherList: MainViewModel.DispatcherList) :
+    ViewModel() {
+    fun <T> handle(
+        blockIo: suspend () -> T,
+        blockUi: suspend (T) -> Unit
+    ) =
+        viewModelScope.launch(dispatcherList.io()) {
+            val result = blockIo.invoke()
+            withContext(dispatcherList.ui()) {
+                blockUi.invoke(result)
             }
         }
-
-    }
 }

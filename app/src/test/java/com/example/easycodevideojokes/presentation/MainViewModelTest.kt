@@ -5,8 +5,6 @@ import com.example.easycodevideojokes.data.Joke
 import com.example.easycodevideojokes.data.Repository
 import com.example.easycodevideojokes.data.cache.JokeResult
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -29,7 +27,7 @@ class MainViewModelTest {
         jokeUiCallback = FakeJokeUiCallback()
 
         viewModel =
-            MainViewModel(repository, toFavoriteMapper, toBaseMapper, FakeHandleUi(FakeDispatchers()))
+            MainViewModel(repository, toFavoriteMapper, toBaseMapper, FakeDispatchers())
         viewModel.init(jokeUiCallback)
     }
 
@@ -119,19 +117,7 @@ class MainViewModelTest {
     }
 }
 
-private class FakeHandleUi(private val dispatcherList: DispatcherList) : HandleUi {
-    override fun handle(
-        coroutineScope: CoroutineScope,
-        jokeUiCallback: JokeUiCallback,
-        block: suspend () -> JokeUi
-    ) {
-        coroutineScope.launch(dispatcherList.io()) {
-            block.invoke().show(jokeUiCallback)
-        }
-    }
-}
-
-private class FakeJokeUiCallback : JokeUiCallback {
+private class FakeJokeUiCallback : MainViewModel.JokeUiCallback {
     val provideTextList = mutableListOf<String>()
     override fun provideText(text: String) {
         provideTextList.add(text)
@@ -143,7 +129,7 @@ private class FakeJokeUiCallback : JokeUiCallback {
     }
 }
 
-private class FakeDispatchers : DispatcherList {
+private class FakeDispatchers : MainViewModel.DispatcherList {
     private val dispatcher = TestCoroutineDispatcher()
     override fun io(): CoroutineDispatcher = dispatcher
 
@@ -167,7 +153,7 @@ private data class FakeJokeUi(
     private val toFavorite: Boolean
 ) :
     JokeUi {
-    override fun show(jokeUiCallback: JokeUiCallback) = with(jokeUiCallback) {
+    override fun show(jokeUiCallback: MainViewModel.JokeUiCallback) = with(jokeUiCallback) {
         provideText(text + "_" + punchline)
         provideIconResId((if (toFavorite) id + 1 else id))
     }
