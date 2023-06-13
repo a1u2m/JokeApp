@@ -6,7 +6,7 @@ import com.example.easycodevideojokes.data.Repository
 import com.example.easycodevideojokes.data.cache.JokeResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineDispatcher
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
@@ -42,7 +42,7 @@ class MainViewModelTest {
                 "TestErrorMessage"
             )
         viewModel.getJoke()
-        val expectedText = "fakeText\ntestPunchline"
+        val expectedText = "fakeText_testPunchline"
         val expectedId = 12
 
         assertEquals(expectedText, jokeUiCallback.provideTextList[0])
@@ -62,7 +62,7 @@ class MainViewModelTest {
                 "TestErrorMessage"
             )
         viewModel.getJoke()
-        val expectedText = "fakeText\ntestPunchline"
+        val expectedText = "fakeText_testPunchline"
         val expectedId = 16
 
         assertEquals(expectedText, jokeUiCallback.provideTextList[0])
@@ -96,7 +96,7 @@ class MainViewModelTest {
     fun test_change_joke_status() {
         repository.returnChangeJokeStatus = FakeJokeUi("testText", "testPunchline", 15, false)
         viewModel.changeJokeStatus()
-        val expectedText = "testText\ntestPunchline"
+        val expectedText = "testText_testPunchline"
         val expectedId = 15
 
         assertEquals(expectedText, jokeUiCallback.provideTextList[0])
@@ -153,7 +153,11 @@ private data class FakeJokeUi(
     private val id: Int,
     private val toFavorite: Boolean
 ) :
-    JokeUi(text, punchline, if (toFavorite) id + 1 else id) {
+    JokeUi {
+    override fun show(jokeUiCallback: JokeUiCallback) = with(jokeUiCallback) {
+        provideText(text + "_" + punchline)
+        provideIconResId((if (toFavorite) id + 1 else id))
+    }
 }
 
 private data class FakeJoke(
@@ -175,11 +179,11 @@ private data class FakeJokeResult(
     private val errorMessage: String
 ) : JokeResult {
     override fun toFavorite(): Boolean {
-return toFavorite
+        return toFavorite
     }
 
     override fun isSuccessful(): Boolean {
-return successful
+        return successful
     }
 
     override fun errorMessage(): String = errorMessage
