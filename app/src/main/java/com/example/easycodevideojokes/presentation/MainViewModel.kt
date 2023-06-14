@@ -1,7 +1,9 @@
 package com.example.easycodevideojokes.presentation
 
 import androidx.annotation.DrawableRes
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.easycodevideojokes.data.Error
@@ -15,15 +17,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainViewModel(
+    private val communication: JokeCommunication,
     private val repository: Repository<JokeUi, Error>,
     private val toFavorite: Joke.Mapper<JokeUi> = ToFavoriteUi(),
     private val toBaseUi: Joke.Mapper<JokeUi> = ToBaseUi(),
     dispatcherList: DispatcherList = DispatcherList.Base()
-) : BaseViewModel(dispatcherList = dispatcherList) {
+) : BaseViewModel(dispatcherList = dispatcherList), Observe<JokeUi> {
 
-    val jokeUiLiveData = MutableLiveData<JokeUi>()
     private val blockUi: suspend (JokeUi) -> Unit = {
-        jokeUiLiveData.value = it
+        communication.map(it)
+    }
+
+    override fun observe(owner: LifecycleOwner, observer: Observer<JokeUi>) {
+        communication.observe(owner, observer)
     }
 
     fun getJoke() {
@@ -43,32 +49,9 @@ class MainViewModel(
             repository.changeJokeStatus()
         }, blockUi)
     }
-
-    interface JokeUiCallback {
-        fun provideText(text: String)
-
-        fun provideIconResId(@DrawableRes iconResId: Int)
-
-        class Empty : JokeUiCallback {
-            override fun provideText(text: String) = Unit
-            override fun provideIconResId(iconResId: Int) = Unit
-        }
-    }
-
-    interface DispatcherList {
-        fun io(): CoroutineDispatcher
-        fun ui(): CoroutineDispatcher
-
-        class Base : DispatcherList {
-            override fun io() = Dispatchers.IO
-
-            override fun ui() = Dispatchers.Main
-
-        }
-    }
 }
 
-abstract class BaseViewModel(private val dispatcherList: MainViewModel.DispatcherList) :
+abstract class BaseViewModel(private val dispatcherList: DispatcherList) :
     ViewModel() {
     fun <T> handle(
         blockIo: suspend () -> T,
@@ -80,4 +63,46 @@ abstract class BaseViewModel(private val dispatcherList: MainViewModel.Dispatche
                 blockUi.invoke(result)
             }
         }
+}
+
+
+interface Observe<T : Any> {
+    fun observe(owner: LifecycleOwner, observer: Observer<T>) = Unit
+}
+
+interface Communication<T : Any> : Observe<T> {
+    fun map(data: T)
+
+    abstract class Abstract<T : Any>(private val liveData: MutableLiveData<T> = MutableLiveData()) :
+        Communication<T> {
+        override fun map(data: T) {
+            liveData.value = data
+        }
+
+        override fun observe(owner: LifecycleOwner, observer: Observer<T>) {
+            liveData.observe(owner, observer)
+        }
+    }
+}
+
+interface JokeCommunication : Communication<JokeUi> {
+    class Base : Communication.Abstract<JokeUi>(), JokeCommunication
+}
+
+interface JokeUiCallback {
+    fun provideText(text: String)
+
+    fun provideIconResId(@DrawableRes iconResId: Int)
+}
+
+interface DispatcherList {
+    fun io(): CoroutineDispatcher
+    fun ui(): CoroutineDispatcher
+
+    class Base : DispatcherList {
+        override fun io() = Dispatchers.IO
+
+        override fun ui() = Dispatchers.Main
+
+    }
 }

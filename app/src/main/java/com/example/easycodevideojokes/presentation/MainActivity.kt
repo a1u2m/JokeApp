@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.getJoke()
         }
 
-        val jokeUiCallback = object : MainViewModel.JokeUiCallback {
+        val jokeUiCallback = object : JokeUiCallback {
             override fun provideText(text: String) {
                 binding.actionButton.isEnabled = true
                 binding.progressBar.visibility = View.INVISIBLE
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
                 binding.favoriteButton.setImageResource(iconResId)
             }
         }
-        viewModel.jokeUiLiveData.observe(this) {
+        viewModel.observe(this) {
             it.show(jokeUiCallback)
         }
     }

@@ -7,6 +7,7 @@ import com.example.easycodevideojokes.data.cache.CacheDataSource
 import com.example.easycodevideojokes.data.cache.ProvideRealm
 import com.example.easycodevideojokes.data.cloud.CloudDataSource
 import com.example.easycodevideojokes.data.cloud.JokeService
+import com.example.easycodevideojokes.presentation.JokeCommunication
 import com.example.easycodevideojokes.presentation.MainViewModel
 import com.example.easycodevideojokes.presentation.ManageResources
 import io.realm.Realm
@@ -27,6 +28,7 @@ class JokeApp : Application() {
                 .build()
         val manageResources = ManageResources.Base(this)
         viewModel = MainViewModel(
+            JokeCommunication.Base(),
             BaseRepository(
                 CloudDataSource.Base(
                     retrofit.create(JokeService::class.java),
