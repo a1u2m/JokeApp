@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.getJoke()
         }
 
-        val jokeUiCallback = object : JokeUiCallback {
+        val jokeUiCallback = object : MainViewModel.JokeUiCallback {
             override fun provideText(text: String) {
                 binding.actionButton.isEnabled = true
                 binding.progressBar.visibility = View.INVISIBLE

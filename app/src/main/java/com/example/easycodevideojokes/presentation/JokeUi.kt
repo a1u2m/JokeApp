@@ -5,7 +5,7 @@ import com.example.easycodevideojokes.R
 
 interface JokeUi {
 
-    fun show(jokeUiCallback: JokeUiCallback)
+    fun show(jokeUiCallback: MainViewModel.JokeUiCallback)
     abstract class Abstract(
 
         private val text: String,
@@ -13,7 +13,7 @@ interface JokeUi {
         @DrawableRes private val iconResId: Int
     ) : JokeUi {
 
-        override fun show(jokeUiCallback: JokeUiCallback) {
+        override fun show(jokeUiCallback: MainViewModel.JokeUiCallback) {
             jokeUiCallback.provideText("$text\n$punchline")
             jokeUiCallback.provideIconResId(iconResId)
         }
