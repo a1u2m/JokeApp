@@ -1,6 +1,7 @@
 package com.example.easycodevideojokes.presentation
 
 import androidx.annotation.DrawableRes
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.easycodevideojokes.data.Error
@@ -19,9 +20,10 @@ class MainViewModel(
     private val toBaseUi: Joke.Mapper<JokeUi> = ToBaseUi(),
     dispatcherList: DispatcherList = DispatcherList.Base()
 ) : BaseViewModel(dispatcherList = dispatcherList) {
-    private var jokeUiCallback: JokeUiCallback = JokeUiCallback.Empty()
+
+    val jokeUiLiveData = MutableLiveData<JokeUi>()
     private val blockUi: suspend (JokeUi) -> Unit = {
-        it.show(jokeUiCallback)
+        jokeUiLiveData.value = it
     }
 
     fun getJoke() {
@@ -30,16 +32,6 @@ class MainViewModel(
             if (result.isSuccessful()) result.map(if (result.toFavorite()) toFavorite else toBaseUi)
             else JokeUi.Failed(result.errorMessage())
         }, blockUi)
-    }
-
-
-    override fun onCleared() {
-        super.onCleared()
-        jokeUiCallback = JokeUiCallback.Empty()
-    }
-
-    fun init(jokeUiCallback: JokeUiCallback) {
-        this.jokeUiCallback = jokeUiCallback
     }
 
     fun chooseFavorite(favorites: Boolean) {

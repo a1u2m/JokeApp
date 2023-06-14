@@ -39,6 +39,8 @@ class MainActivity : AppCompatActivity() {
                 binding.favoriteButton.setImageResource(iconResId)
             }
         }
-        viewModel.init(jokeUiCallback)
+        viewModel.jokeUiLiveData.observe(this) {
+            it.show(jokeUiCallback)
+        }
     }
 }

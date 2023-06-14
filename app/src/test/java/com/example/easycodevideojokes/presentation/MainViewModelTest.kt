@@ -28,7 +28,6 @@ class MainViewModelTest {
 
         viewModel =
             MainViewModel(repository, toFavoriteMapper, toBaseMapper, FakeDispatchers())
-        viewModel.init(jokeUiCallback)
     }
 
     @Test
